@@ -6,6 +6,7 @@ import pandas as pd
 from pandas.compat import u, StringIO
 from pandas.core.base import FrozenList, FrozenNDArray, DatetimeIndexOpsMixin
 from pandas.util.testing import assertRaisesRegexp, assert_isinstance
+from pandas.tseries.datetimelike import is_datetimelike
 from pandas import Series, Index, Int64Index, DatetimeIndex, PeriodIndex
 from pandas import _np_version_under1p7
 import pandas.tslib as tslib
@@ -526,13 +527,12 @@ class TestIndexOps(Ops):
 
 
 class TestDatetimeIndexOps(Ops):
-    _allowed = '_allow_datetime_index_ops'
     tz = [None, 'UTC', 'Asia/Tokyo', 'US/Eastern',
           'dateutil/Asia/Singapore', 'dateutil/US/Pacific']
 
     def setUp(self):
         super(TestDatetimeIndexOps, self).setUp()
-        mask = lambda x: x._allow_datetime_index_ops or x._allow_period_index_ops
+        mask = lambda x: isinstance(x, DatetimeIndex) or isinstance(x, PeriodIndex) or is_datetimelike(x)
         self.is_valid_objs  = [ o for o in self.objs if mask(o) ]
         self.not_valid_objs = [ o for o in self.objs if not mask(o) ]
 
@@ -784,11 +784,10 @@ Length: 3, Freq: None, Timezone: US/Eastern"""
 
 
 class TestPeriodIndexOps(Ops):
-    _allowed = '_allow_period_index_ops'
 
     def setUp(self):
         super(TestPeriodIndexOps, self).setUp()
-        mask = lambda x: x._allow_datetime_index_ops or x._allow_period_index_ops
+        mask = lambda x: isinstance(x, DatetimeIndex) or isinstance(x, PeriodIndex) or is_datetimelike(x)
         self.is_valid_objs  = [ o for o in self.objs if mask(o) ]
         self.not_valid_objs = [ o for o in self.objs if not mask(o) ]
 
