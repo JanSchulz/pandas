@@ -1,9 +1,9 @@
 ## datetimelike delegation ##
 
 import numpy as np
-from pandas.core.base import PandasObject, DatetimeIndexOpsMixin
 from pandas.core import common as com
 from pandas import Series, DatetimeIndex, PeriodIndex
+from pandas.core.properties import Properties
 from pandas import lib, tslib
 
 def is_datetimelike(data):
@@ -46,23 +46,6 @@ def maybe_to_datetimelike(data, copy=False):
 
     raise TypeError("cannot convert an object of type {0} to a datetimelike index".format(type(data)))
 
-class Properties(PandasObject):
-    """
-    This is a delegator class that passes thru limit property access
-    """
-
-    def __init__(self, values, index):
-        self.values = values
-        self.index = index
-
-    def _delegate_access(self, name):
-        result = getattr(self.values,name)
-
-        # maybe need to upcast (ints)
-        if isinstance(result, np.ndarray):
-            if com.is_integer_dtype(result):
-                result = result.astype('int64')
-        return Series(result, index=self.index)
 
 class DatetimeProperties(Properties):
     """
