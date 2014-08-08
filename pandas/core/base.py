@@ -100,6 +100,36 @@ class PandasObject(StringMixin):
         else:
             self._cache.pop(key, None)
 
+    @classmethod
+    def _add_delegate_accessors(cls, delegate, accessors, typ):
+        """
+        add accessors to cls from the delegate class
+
+        Parameters
+        ----------
+        cls : the class to add the methods/properties to
+        delegate : the class to get methods/properties & doc-strings
+        acccessors : string list of accessors to add
+        typ : 'property' or 'method'
+
+        """
+
+        def _create_delegator(name):
+
+            def f(self):
+                return self._delegate_access(name)
+
+            f.__name__ = name
+            f.__doc__ = getattr(delegate,name).__doc__
+
+            return f
+
+        for name in accessors:
+
+            f = _create_delegator(name)
+            if typ == 'property':
+                f = property(f)
+            setattr(cls,name,f)
 
 class FrozenList(PandasObject, list):
 

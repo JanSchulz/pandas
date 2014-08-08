@@ -46,26 +46,6 @@ def maybe_to_datetimelike(data, copy=False):
 
     raise TypeError("cannot convert an object of type {0} to a datetimelike index".format(type(data)))
 
-# facilitate the properties on the wrapped ops
-def _add_accessors(cls):
-
-    delegate = cls._delegate
-
-    def _create_delegator(name):
-
-        def f(self):
-            return self._execute(name)
-
-        f.__name__ = name
-        f.__doc__ = getattr(delegate,name).__doc__
-
-        return f
-
-    for name in delegate._datetimelike_ops:
-
-        f = _create_delegator(name)
-        setattr(cls,name,property(f))
-
 class Properties(PandasObject):
     """
     This is a delegator class that passes thru limit property access
@@ -75,7 +55,7 @@ class Properties(PandasObject):
         self.values = values
         self.index = index
 
-    def _execute(self, name):
+    def _delegate_access(self, name):
         result = getattr(self.values,name)
 
         # maybe need to upcast (ints)
@@ -88,12 +68,15 @@ class DatetimeProperties(Properties):
     """
     Manages a DatetimeIndex Delegate
     """
-    _delegate = DatetimeIndex
-_add_accessors(DatetimeProperties)
+    pass
+DatetimeProperties._add_delegate_accessors(delegate=DatetimeIndex,
+                                           accessors=DatetimeIndex._datetimelike_ops,
+                                           typ='property')
 
 class PeriodProperties(Properties):
     """
     Manages a PeriodIndex Delegate
     """
-    _delegate = PeriodIndex
-_add_accessors(PeriodProperties)
+PeriodProperties._add_delegate_accessors(delegate=PeriodIndex,
+                                         accessors=PeriodIndex._datetimelike_ops,
+                                         typ='property')
